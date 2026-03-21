@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenQuiz</title>
+<style>
+  /* system fonts — no network request */
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:            #111827;
+    --surface:       #1a2235;
+    --input:         #151d2e;
+    --border:        #2a3550;
+    --border-soft:   #1e2a40;
+    --text:          #e8eeff;
+    --muted:         #6b7fa3;
+    --accent:        #22d3a4;
+    --accent-bg:     #0d2e28;
+    --accent-border: #133d32;
+    --blue:          #3b6df0;
+    --blue-hover:    #4f7cf5;
+    --blue-bg:       #0e1a3a;
+    --blue-border:   #162447;
+    --warning:       #f5a623;
+    --warning-bg:    #2a1f0a;
+    --warning-border:#3a2a0d;
+    --danger:        #ff5f5f;
+    --danger-bg:     #2a0f0f;
+    --danger-border: #3a1515;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+    font-size: 13px;
+    user-select: none;
+  }
+
+  /* ── Layout shell ── */
+  .shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  /* ── Header / drag zone ── */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    -webkit-app-region: drag;
+    cursor: grab;
+    flex-shrink: 0;
+  }
+  .header:active { cursor: grabbing; }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    box-shadow: 0 0 6px var(--accent);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.45; }
+  }
+
+  .app-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    flex: 1;
+  }
+
+  .header-btns {
+    display: flex;
+    gap: 4px;
+    -webkit-app-region: no-drag;
+  }
+
+  .icon-btn {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .icon-btn:hover { background: var(--border-soft); color: var(--text); }
+  .icon-btn.close { background: #2a1515; border-color: #3a2020; color: #ff6b6b; }
+  .icon-btn.close:hover { background: #ff4444; color: #fff; }
+
+  /* ── Body scroll area ── */
+  .body {
+    flex: 1;
+    overflow: hidden;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 0;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--accent-border);
+    background: var(--accent-bg);
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .status-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .status-text {
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    line-height: 1.4;
+    transition: color 0.2s;
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  /* ── Capture buttons ── */
+  .capture-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-area {
+    background: #0f2028;
+    border-color: #1a3840;
+    color: var(--accent);
+  }
+  .btn-area:hover { background: #163038; }
+
+  .btn-full {
+    background: #0f1428;
+    border-color: #1a2040;
+    color: var(--muted);
+  }
+  .btn-full:hover { background: #161d3a; color: var(--text); }
+
+  /* ── Question box ── */
+  .question-box {
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 48px;
+    max-height: 80px;
+    overflow-y: auto;
+    word-break: break-word;
+    transition: border-color 0.2s;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .question-box.placeholder { color: var(--muted); font-style: italic; }
+
+  /* ── Action buttons ── */
+  .action-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn-ai {
+    background: var(--blue);
+    border-color: transparent;
+    color: #fff;
+  }
+  .btn-ai:hover { background: var(--blue-hover); }
+  .btn-ai.loading { background: #2a3f80; cursor: wait; }
+
+  .btn-depth {
+    background: #111b35;
+    border-color: #1e2a50;
+    color: var(--muted);
+  }
+  .btn-depth:hover { background: #182040; color: var(--text); }
+
+  /* ── Toggle row ── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    background: var(--bg);
+  }
+
+  .toggle-track {
+    width: 34px; height: 18px;
+    border-radius: 9px;
+    background: #253045;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-track.on { background: var(--accent); }
+  .toggle-thumb {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .toggle-track.on .toggle-thumb { transform: translateX(16px); }
+
+  .toggle-label {
+    font-size: 11px;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+  .toggle-label.on { color: var(--accent); }
+
+  /* ── Answer box ── */
+  .answer-box {
+    flex: 1;
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+    transition: background 0.25s, border-color 0.25s;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .answer-box.loading { color: var(--muted); font-style: italic; }
+  .answer-box.answer  { background: var(--blue-bg); border-color: var(--blue-border); }
+  .answer-box.error   { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+
+  /* ── Shortcut chips ── */
+  .chips-row {
+    display: flex;
+    gap: 5px;
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    border: 1px solid #2a3a58;
+    background: #1a2540;
+    overflow: hidden;
+  }
+  .chip-key {
+    padding: 3px 6px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    color: #7eb3e8;
+    border-right: 1px solid #2a3a58;
+  }
+  .chip-label {
+    padding: 3px 6px;
+    font-size: 9px;
+    color: var(--muted);
+  }
+
+  /* ── Spinner ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border: 2px solid var(--border);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="live-dot" id="liveDot"></div>
+    <span class="app-name">OpenQuiz</span>
+    <div class="header-btns">
+      <button class="icon-btn" onclick="pywebview.api.select_area()" title="Reselect area">⊹</button>
+      <button class="icon-btn close" onclick="pywebview.api.exit_app()" title="Close">✕</button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+
+    <!-- Status -->
+    <div class="status-bar" id="statusBar">
+      <div class="status-dot" id="statusDot"></div>
+      <span class="status-text" id="statusText">Click 'Select Area' to begin.</span>
+    </div>
+
+    <!-- Capture -->
+    <div>
+      <div class="section-label">Capture</div>
+      <div class="capture-row">
+        <button class="btn btn-area" onclick="pywebview.api.select_area()">↗ Select Area</button>
+        <button class="btn btn-full" onclick="pywebview.api.capture_fullscreen()">⛶ Full Screen</button>
+      </div>
+    </div>
+
+    <!-- Question -->
+    <div>
+      <div class="section-label">Question</div>
+      <div class="question-box placeholder" id="questionBox">
+        Captured question text will appear here…
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-row">
+      <button class="btn btn-ai" id="btnAI" onclick="triggerAI()">⚡ AI Answer</button>
+      <button class="btn btn-depth" onclick="pywebview.api.capture_indepth()">In Depth</button>
+    </div>
+
+    <!-- Auto toggle -->
+    <div class="toggle-row">
+      <div class="toggle-track" id="toggleTrack" onclick="toggleAuto()">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span class="toggle-label" id="toggleLabel">Auto 3s — watches for changes</span>
+    </div>
+
+    <!-- Answer -->
+    <div style="flex:1; display:flex; flex-direction:column; min-height:140px;">
+      <div class="section-label">Answer</div>
+      <div class="answer-box" id="answerBox" style="min-height:120px;">
+Press F8 to capture a question and get an instant answer.
+
+Use AI Answer to recapture, or turn on Auto 3s to watch automatically.</div>
+    </div>
+
+    <!-- Chips -->
+    <div class="chips-row">
+      <div class="chip"><span class="chip-key">F8</span><span class="chip-label">capture</span></div>
+      <div class="chip"><span class="chip-key">F9</span><span class="chip-label">copy</span></div>
+      <div class="chip"><span class="chip-key">Esc</span><span class="chip-label">exit</span></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── JS → Python bridges ──────────────────────────────────────────────────
+
+  function triggerAI() {
+    pywebview.api.capture_ai();
+  }
+
+  function toggleAuto() {
+    pywebview.api.toggle_auto();
+  }
+
+  // ── Python → JS callbacks ────────────────────────────────────────────────
+
+  window.onStatus = function(text, tone) {
+    const bar  = document.getElementById('statusBar');
+    const dot  = document.getElementById('statusDot');
+    const txt  = document.getElementById('statusText');
+    const map = {
+      info:    ['var(--accent-bg)',   'var(--accent-border)', 'var(--accent)'],
+      ready:   ['var(--accent-bg)',   'var(--accent-border)', 'var(--accent)'],
+      warning: ['var(--warning-bg)',  'var(--warning-border)','var(--warning)'],
+      error:   ['var(--danger-bg)',   'var(--danger-border)', 'var(--danger)'],
+    };
+    const [bg, border, color] = map[tone] || map.info;
+    bar.style.background   = bg;
+    bar.style.borderColor  = border;
+    dot.style.background   = color;
+    txt.style.color        = color;
+    txt.textContent        = text;
+  };
+
+  window.onQuestion = function(text) {
+    const box = document.getElementById('questionBox');
+    box.textContent = text;
+    box.classList.remove('placeholder');
+  };
+
+  window.onAnswer = function(text, tone) {
+    const box = document.getElementById('answerBox');
+    box.textContent = text;
+    box.className = 'answer-box ' + (tone || '');
+  };
+
+  window.onProcessing = function(active) {
+    const btn = document.getElementById('btnAI');
+    btn.classList.toggle('loading', active);
+    btn.innerHTML = active
+      ? '<span class="spinner"></span>Thinking…'
+      : '⚡ AI Answer';
+    btn.disabled = active;
+  };
+
+  window.onAutoChanged = function(on) {
+    const track = document.getElementById('toggleTrack');
+    const label = document.getElementById('toggleLabel');
+    track.classList.toggle('on', on);
+    label.classList.toggle('on', on);
+    label.textContent = on
+      ? 'Auto 3s — watching for changes…'
+      : 'Auto 3s — watches for changes';
+  };
+</script>
+</body>
+</html>
