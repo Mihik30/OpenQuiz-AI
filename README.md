@@ -1,6 +1,6 @@
-# QuizGrip
+# OpenQuiz AI
 
-QuizGrip is a small Windows desktop overlay for fast quiz answering. It uses a `pywebview` UI, lets you select a screen region, runs OCR with Tesseract, and sends the detected question to a Groq-hosted model for either a quick answer or a more detailed explanation.
+OpenQuiz AI is a small Windows desktop overlay for fast quiz answering. It uses a `pywebview` UI, lets you select a screen region, runs OCR with Tesseract, and sends the detected question to a Groq-hosted model for either a quick answer or a more detailed explanation.
 
 ## Disclaimer
 
@@ -8,9 +8,9 @@ This project is provided for educational, research, and personal learning purpos
 
 ## Screenshots
 
-![QuizGrip screenshot 1](./Screenshot%202026-03-21%20210135.png)
+![OpenQuiz AI screenshot 1](./Screenshot%202026-03-21%20210135.png)
 
-![QuizGrip screenshot 2](./Screenshot%202026-03-21%20210806.png)
+![OpenQuiz AI screenshot 2](./Screenshot%202026-03-21%20210806.png)
 
 ## Current Behavior
 
