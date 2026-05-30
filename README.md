@@ -1,6 +1,6 @@
 # OpenQuiz AI
 
-OpenQuiz AI is a small Windows desktop overlay for fast quiz answering. It uses a `pywebview` UI, lets you select a screen region, runs OCR with Tesseract, and sends the detected question to a Groq-hosted model for either a quick answer or a more detailed explanation.
+OpenQuiz AI is a small Windows desktop overlay for fast quiz answering. It uses a `pywebview` UI, lets you select a screen region, runs OCR with Tesseract, and sends the detected question to a selected AI model for either a quick answer or a more detailed explanation.
 
 ## Disclaimer
 
@@ -14,19 +14,20 @@ This project is provided for educational, research, and personal learning purpos
 
 ## Current Behavior
 
-- The main overlay is a frameless always-on-top desktop window.
+- The main overlay is a frameless always-on-top desktop window that avoids stealing focus on Windows.
 - The capture region selector is a temporary full-screen Tkinter crosshair overlay.
 - `F8` captures the selected area and immediately generates a normal answer.
 - `AI Answer` re-captures the current content and generates a fresh normal answer.
 - `In Depth` captures again and generates a longer answer.
 - `Full Screen` runs a one-time full-screen OCR capture and answers that capture.
+- The model selector can switch between Qwen, DeepSeek, and Llama. Llama/Groq is the default.
 - `Auto 3s` checks the selected area every 3 seconds and only triggers a new answer when the OCR text changes.
 - `F9` copies the latest answer.
 - `Esc` or the close button exits the app.
 
 ## Files
 
-- `main.py`: Python backend, OCR, hotkeys, Groq API calls, area selector, and JS bridge
+- `main.py`: Python backend, OCR, hotkeys, model API calls, area selector, and JS bridge
 - `ui.html`: desktop overlay UI rendered through `pywebview`
 - `.env`: local API and OCR configuration
 
@@ -42,17 +43,18 @@ This project is provided for educational, research, and personal learning purpos
      ```
 3. Python packages
    ```powershell
-   pip install pywebview pytesseract pillow requests pynput
+   pip install pywebview pytesseract pillow requests pynput pywin32
    ```
 4. Local `.env`
    ```env
    GROQ_API_KEY=your_key_here
    GROQ_MODEL=llama-3.1-8b-instant
    GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
+   DEFAULT_MODEL=llama
    TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
    ```
 
-`.env` is loaded automatically on startup. The app also accepts `AI_*` variables and legacy `OPENAI_*` variables, but Groq is the default setup.
+`.env` is loaded automatically on startup. The app defaults to Llama through Groq. Qwen and DeepSeek use Hugging Face-compatible variables such as `HF_API_KEY`, `QWEN_MODEL`, and `DEEPSEEK_MODEL`.
 
 ## Run
 
@@ -68,13 +70,16 @@ python main.py
 4. Use `AI Answer` to re-capture and answer again.
 5. Use `In Depth` for a longer answer.
 6. Use `Full Screen` for a one-time full-screen capture.
-7. Turn on `Auto 3s` if you want automatic next answers only when the detected question changes.
-8. Press `F9` to copy the latest answer.
-9. Press `Esc` or click the close button to exit.
+7. Choose Qwen, DeepSeek, or Llama if you want to switch answer providers.
+8. Turn on `Auto 3s` if you want automatic next answers only when the detected question changes.
+9. Press `F9` to copy the latest answer.
+10. Press `Esc` or click the close button to exit.
 
 ## Notes
 
 - Heavy OCR/API imports are loaded lazily, so the app starts faster and warms itself in the background after the window loads.
+- The AI prompt is OCR-aware: it asks the model to answer clear questions directly and flag incomplete or unreadable OCR instead of guessing.
+- The terminal prints safe request diagnostics such as provider, model, and OCR text length. It never prints API keys.
 - Auto mode only works with a selected area, not with one-time full-screen capture.
 - If OCR reads the same text again, auto mode does nothing.
 - The answer box in the UI will show OCR errors and API errors directly.
@@ -82,6 +87,6 @@ python main.py
 ## Troubleshooting
 
 - If Tesseract is missing, the answer area will show the expected OCR path and tell you to set `TESSERACT_CMD`.
-- If the API key is missing, the answer area will tell you to set `GROQ_API_KEY` in `.env`.
+- If the API key is missing, the answer area will tell you which provider key to set in `.env`.
 - If the API request fails, the answer area will show the HTTP status and returned message.
 - If OCR finds no text, tighten the selected area and try again.

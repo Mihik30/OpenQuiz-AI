@@ -199,7 +199,7 @@
     color: var(--text);
     line-height: 1.5;
     min-height: 48px;
-    max-height: 80px;
+    max-height: 64px;
     overflow-y: auto;
     word-break: break-word;
     transition: border-color 0.2s;
@@ -228,6 +228,23 @@
     color: var(--muted);
   }
   .btn-depth:hover { background: #182040; color: var(--text); }
+
+  .model-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn-model {
+    background: #111b35;
+    border-color: #1e2a50;
+    color: var(--muted);
+  }
+  .btn-model:hover { background: #182040; color: var(--text); }
+  .btn-model.active {
+    background: var(--accent-bg);
+    border-color: var(--accent-border);
+    color: var(--accent);
+  }
 
   /* ── Toggle row ── */
   .toggle-row {
@@ -378,6 +395,16 @@
       <button class="btn btn-depth" onclick="pywebview.api.capture_indepth()">In Depth</button>
     </div>
 
+    <!-- Model -->
+    <div>
+      <div class="section-label">Model</div>
+      <div class="model-row">
+        <button class="btn btn-model active" data-model="qwen" onclick="selectModel('qwen')">Qwen</button>
+        <button class="btn btn-model" data-model="deepseek" onclick="selectModel('deepseek')">DeepSeek</button>
+        <button class="btn btn-model" data-model="llama" onclick="selectModel('llama')">Llama</button>
+      </div>
+    </div>
+
     <!-- Auto toggle -->
     <div class="toggle-row">
       <div class="toggle-track" id="toggleTrack" onclick="toggleAuto()">
@@ -387,9 +414,9 @@
     </div>
 
     <!-- Answer -->
-    <div style="flex:1; display:flex; flex-direction:column; min-height:140px;">
+    <div style="flex:1; display:flex; flex-direction:column; min-height:220px;">
       <div class="section-label">Answer</div>
-      <div class="answer-box" id="answerBox" style="min-height:120px;">
+      <div class="answer-box" id="answerBox" style="min-height:200px;">
 Press F8 to capture a question and get an instant answer.
 
 Use AI Answer to recapture, or turn on Auto 3s to watch automatically.</div>
@@ -414,6 +441,10 @@ Use AI Answer to recapture, or turn on Auto 3s to watch automatically.</div>
 
   function toggleAuto() {
     pywebview.api.toggle_auto();
+  }
+
+  function selectModel(model) {
+    pywebview.api.set_model(model);
   }
 
   // ── Python → JS callbacks ────────────────────────────────────────────────
@@ -455,6 +486,12 @@ Use AI Answer to recapture, or turn on Auto 3s to watch automatically.</div>
       ? '<span class="spinner"></span>Thinking…'
       : '⚡ AI Answer';
     btn.disabled = active;
+  };
+
+  window.onModelChanged = function(model) {
+    document.querySelectorAll('.btn-model').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.model === model);
+    });
   };
 
   window.onAutoChanged = function(on) {

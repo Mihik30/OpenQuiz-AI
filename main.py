@@ -2,8 +2,20 @@ import os
 import queue
 import threading
 import logging
+from urllib.parse import urlparse
 logging.getLogger('pywebview').setLevel(logging.CRITICAL)
 import webview
+import ctypes
+from ctypes import wintypes
+
+try:
+    import win32api
+    import win32con
+    import win32gui
+except ImportError:
+    win32api = None
+    win32con = None
+    win32gui = None
 
 # Heavy imports — loaded lazily on first use to keep startup fast
 _pytesseract = None
@@ -11,6 +23,101 @@ _requests = None
 _ImageGrab = None
 _ImageOps = None
 _pynput_keyboard = None
+
+GWL_EXSTYLE = -20
+WS_EX_NOACTIVATE = 0x08000000
+WM_MOUSEACTIVATE = 0x0021
+MA_NOACTIVATE = 3
+
+UINT_PTR = getattr(wintypes, "UINT_PTR", wintypes.WPARAM)
+DWORD_PTR = getattr(wintypes, "DWORD_PTR", wintypes.LPARAM)
+LRESULT = ctypes.c_longlong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_long
+
+
+def _find_window_hwnd(window):
+    hwnd = getattr(window, "hwnd", None)
+    if hwnd:
+        return hwnd
+
+    if not win32gui:
+        return None
+
+    title = getattr(window, "title", "")
+    if title:
+        hwnd = win32gui.FindWindow(None, title)
+        if hwnd:
+            return hwnd
+
+    handles = []
+
+    def callback(candidate, extra):
+        if win32gui.IsWindowVisible(candidate):
+            text = win32gui.GetWindowText(candidate)
+            if title and title in text:
+                extra.append(candidate)
+        return True
+
+    win32gui.EnumWindows(callback, handles)
+    return handles[0] if handles else None
+
+
+def setup_no_activate_subclass(window):
+    """Keep the pywebview overlay clickable without activating it."""
+    if os.name != "nt":
+        return False
+    if not win32gui:
+        print("pywin32 is required for no-activate window behavior")
+        return False
+
+    hwnd = _find_window_hwnd(window)
+    if not hwnd:
+        print("Could not find window handle")
+        return False
+
+    exstyle = win32gui.GetWindowLong(hwnd, GWL_EXSTYLE)
+    win32gui.SetWindowLong(hwnd, GWL_EXSTYLE, exstyle | WS_EX_NOACTIVATE)
+
+    comctl32 = ctypes.windll.comctl32
+    comctl32.DefSubclassProc.restype = LRESULT
+    comctl32.DefSubclassProc.argtypes = (
+        wintypes.HWND,
+        wintypes.UINT,
+        wintypes.WPARAM,
+        wintypes.LPARAM,
+    )
+    comctl32.SetWindowSubclass.restype = wintypes.BOOL
+
+    SUBCLASSPROC = ctypes.WINFUNCTYPE(
+        LRESULT,
+        wintypes.HWND,
+        wintypes.UINT,
+        wintypes.WPARAM,
+        wintypes.LPARAM,
+        UINT_PTR,
+        DWORD_PTR,
+    )
+
+    def subclass_proc(hwnd, msg, wparam, lparam, uidsubclass, dwrefdata):
+        if msg == WM_MOUSEACTIVATE:
+            return MA_NOACTIVATE
+        return comctl32.DefSubclassProc(hwnd, msg, wparam, lparam)
+
+    c_subclass = SUBCLASSPROC(subclass_proc)
+    window._c_subclass = c_subclass
+    comctl32.SetWindowSubclass.argtypes = (
+        wintypes.HWND,
+        SUBCLASSPROC,
+        UINT_PTR,
+        DWORD_PTR,
+    )
+    installed = comctl32.SetWindowSubclass(hwnd, c_subclass, 1, 0)
+    if not installed:
+        error_code = win32api.GetLastError() if win32api else ctypes.get_last_error()
+        print(f"Could not install window subclass: {error_code}")
+        return False
+
+    print("No-activate window subclass installed")
+    return True
 
 def _lazy_imports():
     global _pytesseract, _requests, _ImageGrab, _ImageOps, _pynput_keyboard
@@ -64,6 +171,34 @@ AI_API_CONFIG = {
     "api_key": first_env("AI_API_KEY", "GROQ_API_KEY", "OPENAI_API_KEY"),
     "model":   first_env("AI_MODEL", "GROQ_MODEL", "OPENAI_MODEL",
                          default="llama-3.1-8b-instant"),
+}
+
+MODEL_CONFIGS = {
+    "qwen": {
+        "label": "Qwen",
+        "url": first_env("HF_API_URL", "HUGGINGFACE_API_URL",
+                         default="https://router.huggingface.co/v1/chat/completions"),
+        "api_key": first_env("HF_API_KEY", "HUGGINGFACE_API_KEY", "HF_TOKEN"),
+        "model": first_env("QWEN_MODEL", default="Qwen/Qwen3-32B:fastest"),
+        "key_hint": "HF_API_KEY=your_huggingface_token",
+    },
+    "deepseek": {
+        "label": "DeepSeek",
+        "url": first_env("HF_API_URL", "HUGGINGFACE_API_URL",
+                         default="https://router.huggingface.co/v1/chat/completions"),
+        "api_key": first_env("HF_API_KEY", "HUGGINGFACE_API_KEY", "HF_TOKEN"),
+        "model": first_env("DEEPSEEK_MODEL", default="deepseek-ai/DeepSeek-R1:fastest"),
+        "key_hint": "HF_API_KEY=your_huggingface_token",
+    },
+    "llama": {
+        "label": "Llama",
+        "url": first_env("GROQ_API_URL", "AI_API_URL",
+                         default="https://api.groq.com/openai/v1/chat/completions"),
+        "api_key": first_env("GROQ_API_KEY", "AI_API_KEY"),
+        "model": first_env("GROQ_MODEL", "LLAMA_MODEL",
+                           default="llama-3.3-70b-versatile"),
+        "key_hint": "GROQ_API_KEY=your_groq_key",
+    },
 }
 
 
@@ -129,6 +264,9 @@ class API:
         self.auto_interval_ms = 3000
         self.current_answer = ""
         self.last_question = ""
+        self.selected_model = first_env("DEFAULT_MODEL", default="llama").lower()
+        if self.selected_model not in MODEL_CONFIGS:
+            self.selected_model = "llama"
         self._answer_queue = queue.Queue()
         self._global_listener = None
         self._auto_timer = None
@@ -166,6 +304,17 @@ class API:
 
     def capture_fullscreen(self):
         self._trigger_capture(in_depth=False, fullscreen=True)
+
+    def set_model(self, model_key):
+        model_key = (model_key or "").lower()
+        if model_key not in MODEL_CONFIGS:
+            self._emit("onStatus", "Unknown model selection.", "warning")
+            return self.selected_model
+        self.selected_model = model_key
+        label = MODEL_CONFIGS[model_key]["label"]
+        self._emit("onModelChanged", model_key)
+        self._emit("onStatus", f"{label} selected.", "ready")
+        return self.selected_model
 
     def toggle_auto(self):
         if self.auto_mode:
@@ -248,7 +397,11 @@ class API:
         mode = "in-depth answer" if in_depth else "answer"
         self._emit("onStatus", f"Question captured. Generating {mode}…", "info")
         self._emit("onAnswer", "Thinking…", "loading")
-        self._answer_queue.put({"question": question, "in_depth": in_depth})
+        self._answer_queue.put({
+            "question": question,
+            "in_depth": in_depth,
+            "model_key": self.selected_model,
+        })
 
     def _ocr(self, bbox):
         _lazy_imports()
@@ -278,7 +431,7 @@ class API:
             job = self._answer_queue.get()
             if job is None:
                 break
-            answer = self._call_ai(job["question"], job["in_depth"])
+            answer = self._call_ai(job["question"], job["in_depth"], job.get("model_key"))
             self.current_answer = answer
             self.processing = False
             tone = "error" if answer.startswith(("API Error:", "AI Error:")) else "answer"
@@ -305,30 +458,47 @@ class API:
                 self._emit("onAnswer", "Thinking…", "loading")
                 self._emit("onProcessing", True)
                 self.processing = True
-                self._answer_queue.put({"question": question, "in_depth": False})
+                self._answer_queue.put({
+                    "question": question,
+                    "in_depth": False,
+                    "model_key": self.selected_model,
+                })
 
-    def _call_ai(self, question, in_depth=False):
-        api_key = AI_API_CONFIG["api_key"]
+    def _call_ai(self, question, in_depth=False, model_key=None):
+        config = MODEL_CONFIGS.get(model_key or self.selected_model, MODEL_CONFIGS["llama"])
+        api_key = config["api_key"]
         if not api_key:
             return ("API Error: No API key set.\n\n"
-                    "Add to .env:\nGROQ_API_KEY=your_key\n"
-                    "GROQ_MODEL=llama-3.1-8b-instant\n"
-                    "GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions")
+                    f"Selected model: {config['label']}\n\n"
+                    f"Add to .env:\n{config['key_hint']}")
 
         system = (
-            "You answer quiz questions clearly and thoroughly. Start with a direct answer, "
-            "then give a compact explanation with key facts."
+            "You answer quiz questions from OCR text. The OCR may contain mistakes or "
+            "missing words. If the question is incomplete, ambiguous, or unreadable, say "
+            "that clearly instead of guessing. For clear questions, solve carefully and "
+            "return exactly:\nAnswer: <final answer>\nWhy: <clear reasoning>\n"
+            "Check: <key fact, calculation, or verification>"
             if in_depth else
-            "You answer quiz questions. Give a short direct answer first, then one brief "
-            "explanation line if needed. If OCR text looks incomplete, say so."
+            "You answer quiz questions from OCR text. The OCR may contain mistakes or "
+            "missing words. If the question is incomplete, ambiguous, or unreadable, say "
+            "that clearly instead of guessing. For clear questions, return exactly:\n"
+            "Answer: <final answer>\nWhy: <brief reason>"
         )
         try:
             _lazy_imports()
+            provider = urlparse(config["url"]).netloc or config["url"]
+            print(
+                "AI request:",
+                f"provider={provider}",
+                f"model={config['model']}",
+                f"label={config['label']}",
+                f"question_chars={len(question or '')}",
+            )
             r = _requests.post(
-                AI_API_CONFIG["url"],
+                config["url"],
                 headers={"Authorization": f"Bearer {api_key}",
                          "Content-Type": "application/json"},
-                json={"model": AI_API_CONFIG["model"],
+                json={"model": config["model"],
                       "messages": [{"role": "system", "content": system},
                                    {"role": "user", "content": question}],
                       "max_tokens": 420 if in_depth else 220,
@@ -372,7 +542,7 @@ if __name__ == "__main__":
     _r = _tk.Tk(); _r.withdraw()
     _sw, _sh = _r.winfo_screenwidth(), _r.winfo_screenheight()
     _r.destroy()
-    WIN_W, WIN_H, MARGIN = 360, 530, 18
+    WIN_W, WIN_H, MARGIN = 380, 660, 18
     START_X = _sw - WIN_W - MARGIN
     START_Y = MARGIN
 
@@ -387,19 +557,22 @@ if __name__ == "__main__":
         height=WIN_H,
         x=START_X,
         y=START_Y,
-        resizable=False,
+        resizable=True,
         frameless=True,
         on_top=True,
         background_color="#111827",
-        min_size=(WIN_W, WIN_H),
+        min_size=(360, 560),
     )
     api.window = window
 
     def on_loaded():
         import time
+        setup_no_activate_subclass(window)
+
         def _ready():
             time.sleep(0.3)
             api._emit("onStatus", "Click 'Select Area' to begin.", "info")
+            api._emit("onModelChanged", api.selected_model)
             # Pre-warm heavy imports in background so first capture is instant
             _lazy_imports()
             api.start_hotkeys()
