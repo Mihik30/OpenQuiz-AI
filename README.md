@@ -48,13 +48,17 @@ This project is provided for educational, research, and personal learning purpos
 4. Local `.env`
    ```env
    GROQ_API_KEY=your_key_here
-   GROQ_MODEL=llama-3.1-8b-instant
+   GROQ_MODEL=llama-3.3-70b-versatile
    GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
    DEFAULT_MODEL=llama
    TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
+
+   HF_API_KEY=your_huggingface_token_here
+   QWEN_MODEL=Qwen/Qwen3-32B:fastest
+   DEEPSEEK_MODEL=deepseek-ai/DeepSeek-R1:fastest
    ```
 
-`.env` is loaded automatically on startup. The app defaults to Llama through Groq. Qwen and DeepSeek use Hugging Face-compatible variables such as `HF_API_KEY`, `QWEN_MODEL`, and `DEEPSEEK_MODEL`.
+`.env` is loaded automatically on startup. The app defaults to Llama through Groq, using the 70B `llama-3.3-70b-versatile` model unless `GROQ_MODEL` is changed. Qwen and DeepSeek use Hugging Face-compatible variables such as `HF_API_KEY`, `QWEN_MODEL`, and `DEEPSEEK_MODEL`.
 
 ## Run
 
