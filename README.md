@@ -60,6 +60,23 @@ This project is provided for educational, research, and personal learning purpos
 
 `.env` is loaded automatically on startup. The app defaults to Llama through Groq, using the 70B `llama-3.3-70b-versatile` model unless `GROQ_MODEL` is changed. Qwen and DeepSeek use Hugging Face-compatible variables such as `HF_API_KEY`, `QWEN_MODEL`, and `DEEPSEEK_MODEL`.
 
+## Groq Setup
+
+Groq is required for the default Llama provider. Create a Groq account at https://console.groq.com, then create an API key from https://console.groq.com/keys.
+
+1. Copy the API key from Groq.
+2. Create a `.env` file in the project folder if it does not already exist.
+3. Add your Groq settings:
+   ```env
+   GROQ_API_KEY=your_groq_key_here
+   GROQ_MODEL=llama-3.3-70b-versatile
+   GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
+   DEFAULT_MODEL=llama
+   ```
+4. Save the file and run the app again.
+
+Do not commit your real `.env` file or API keys. The project already ignores `.env` through `.gitignore`.
+
 ## Run
 
 ```powershell
