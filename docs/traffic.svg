@@ -1,0 +1,21 @@
+<svg width="820" height="300" viewBox="0 0 820 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Repository traffic graph</title>
+  <desc id="desc">Daily GitHub views and clones will appear here after the first successful workflow run.</desc>
+  <rect width="820" height="300" rx="8" fill="#0f172a"/>
+  <text x="32" y="38" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Repository Traffic</text>
+  <text x="32" y="62" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">Mihik30/OpenQuiz-AI - waiting for first workflow run</text>
+  <line x1="54" y1="220" x2="766" y2="220" stroke="#334155" stroke-width="1"/>
+  <line x1="54" y1="88" x2="54" y2="220" stroke="#334155" stroke-width="1"/>
+  <polyline points="54,220 766,220" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+  <polyline points="54,220 766,220" fill="none" stroke="#34d399" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="608" cy="38" r="5" fill="#38bdf8"/>
+  <text x="620" y="43" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="13">Views</text>
+  <circle cx="682" cy="38" r="5" fill="#34d399"/>
+  <text x="694" y="43" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="13">Clones</text>
+  <text x="32" y="252" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">0</text>
+  <text x="32" y="272" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">saved views</text>
+  <text x="272" y="252" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">0</text>
+  <text x="272" y="272" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">saved clones</text>
+  <text x="564" y="252" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">0</text>
+  <text x="564" y="272" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">saved days</text>
+</svg>

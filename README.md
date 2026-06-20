@@ -2,6 +2,12 @@
 
 OpenQuiz AI is a small Windows desktop overlay for fast quiz answering. It uses a `pywebview` UI, lets you select a screen region, runs OCR with Tesseract, and sends the detected question to a selected AI model for either a quick answer or a more detailed explanation.
 
+## Repository Traffic
+
+![Repository traffic graph](./docs/traffic.svg)
+
+This graph uses aggregate GitHub traffic API data for views and full clones. GitHub only exposes recent traffic, so long-term history starts from the first successful workflow run and is preserved in `docs/traffic.json`.
+
 ## Disclaimer
 
 This project is provided for educational, research, and personal learning purposes only. You are responsible for how you use it. Do not use it in ways that violate exam rules, platform policies, academic integrity policies, employment policies, contracts, or applicable laws. The author and contributors provide this project as-is, without warranties, and accept no liability for misuse.
