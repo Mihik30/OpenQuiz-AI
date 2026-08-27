@@ -479,8 +479,20 @@
       "unique_clones": 5,
       "unique_views": 0,
       "views": 0
+    },
+    "2026-08-25": {
+      "clones": 5,
+      "unique_clones": 5,
+      "unique_views": 1,
+      "views": 3
+    },
+    "2026-08-26": {
+      "clones": 8,
+      "unique_clones": 5,
+      "unique_views": 0,
+      "views": 0
     }
   },
   "repository": "Mihik30/OpenQuiz-AI",
-  "updated_at": "2026-08-26T04:01:52Z"
+  "updated_at": "2026-08-27T14:10:31Z"
 }
