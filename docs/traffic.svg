@@ -1,22 +1,22 @@
 <svg width="820" height="300" viewBox="0 0 820 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">Repository traffic graph</title>
-  <desc id="desc">Daily GitHub views and clones for Mihik30/OpenQuiz-AI. Last updated 2026-08-31T09:42:40Z.</desc>
+  <desc id="desc">Daily GitHub views and clones for Mihik30/OpenQuiz-AI. Last updated 2026-09-01T08:37:27Z.</desc>
   <rect width="820" height="300" rx="8" fill="#0f172a"/>
   <text x="32" y="38" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Repository Traffic</text>
-  <text x="32" y="62" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">Mihik30/OpenQuiz-AI - 2026-08-01 to 2026-08-30</text>
+  <text x="32" y="62" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">Mihik30/OpenQuiz-AI - 2026-08-02 to 2026-08-31</text>
   <line x1="54" y1="220" x2="766" y2="220" stroke="#334155" stroke-width="1"/>
   <line x1="54" y1="88" x2="54" y2="220" stroke="#334155" stroke-width="1"/>
-  <polyline points="54.0,220 78.55,220 103.1,220 127.66,220 152.20999999999998,220 176.76,209 201.31,198 225.86,209 250.41,220 274.97,220 299.52,198 324.07,220 348.62,220 373.17,209 397.72,209 422.28,220 446.83,209 471.38,220 495.93,220 520.48,220 545.03,198 569.59,209 594.14,209 618.69,220 643.24,187 667.79,220 692.34,220 716.9,220 741.45,220 766.0,220" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="54.0,110 78.55,198 103.1,187 127.66,187 152.20999999999998,209 176.76,176 201.31,187 225.86,99 250.41,187 274.97,198 299.52,165 324.07,198 348.62,176 373.17,143 397.72,88 422.28,198 446.83,99 471.38,176 495.93,176 520.48,132 545.03,187 569.59,176 594.14,187 618.69,121 643.24,165 667.79,132 692.34,187 716.9,187 741.45,198 766.0,176" fill="none" stroke="#34d399" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="54.0,220 78.55,220 103.1,220 127.66,220 152.20999999999998,209 176.76,198 201.31,209 225.86,220 250.41,220 274.97,198 299.52,220 324.07,220 348.62,209 373.17,209 397.72,220 422.28,209 446.83,220 471.38,220 495.93,220 520.48,198 545.03,209 569.59,209 594.14,220 618.69,187 643.24,220 667.79,220 692.34,220 716.9,220 741.45,220 766.0,220" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="54.0,198 78.55,187 103.1,187 127.66,209 152.20999999999998,176 176.76,187 201.31,99 225.86,187 250.41,198 274.97,165 299.52,198 324.07,176 348.62,143 373.17,88 397.72,198 422.28,99 446.83,176 471.38,176 495.93,132 520.48,187 545.03,176 569.59,187 594.14,121 618.69,165 643.24,132 667.79,187 692.34,187 716.9,198 741.45,176 766.0,110" fill="none" stroke="#34d399" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="608" cy="38" r="5" fill="#38bdf8"/>
   <text x="620" y="43" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="13">Views</text>
   <circle cx="682" cy="38" r="5" fill="#34d399"/>
   <text x="694" y="43" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="13">Clones</text>
   <text x="32" y="252" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">39</text>
   <text x="32" y="272" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">saved views (28 unique)</text>
-  <text x="272" y="252" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">555</text>
-  <text x="272" y="272" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">saved clones (400 unique)</text>
-  <text x="564" y="252" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">86</text>
+  <text x="272" y="252" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">565</text>
+  <text x="272" y="272" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">saved clones (406 unique)</text>
+  <text x="564" y="252" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">87</text>
   <text x="564" y="272" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="13">saved days</text>
-  <text x="32" y="292" fill="#64748b" font-family="Segoe UI, Arial, sans-serif" font-size="11">Updated: 2026-08-31T09:42:40Z</text>
+  <text x="32" y="292" fill="#64748b" font-family="Segoe UI, Arial, sans-serif" font-size="11">Updated: 2026-09-01T08:37:27Z</text>
 </svg>
